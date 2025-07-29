@@ -10,12 +10,15 @@ export class Assets {
     // Звуки будут генерироваться через Web Audio API
     this._soundList = ['jump', 'hit', 'score'];
     this._audioCtx = null;
+    this.backgroundMusic = null;
+    this.isMusicPlaying = false;
   }
 
   async loadAll() {
     await Promise.all([
       this._loadImages(),
-      this._generateSounds()
+      this._generateSounds(),
+      this._loadBackgroundMusic()
     ]);
   }
 
@@ -93,5 +96,73 @@ export class Assets {
       g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.12);
       o.stop(ctx.currentTime + 0.13);
     };
+  }
+
+  // --- Фоновая музыка ---
+  async _loadBackgroundMusic() {
+    try {
+      const response = await fetch('src/assets/title.wav');
+      const arrayBuffer = await response.arrayBuffer();
+      this._audioCtx = this._audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const audioBuffer = await this._audioCtx.decodeAudioData(arrayBuffer);
+      this.backgroundMusic = audioBuffer;
+    } catch (error) {
+      console.warn('Could not load background music:', error);
+    }
+  }
+
+  playBackgroundMusic() {
+    if (!this.backgroundMusic) return;
+    
+    // Останавливаем предыдущую музыку, если она играет
+    this.stopBackgroundMusic();
+    
+    this._audioCtx = this._audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    
+    const playMusic = () => {
+      const source = this._audioCtx.createBufferSource();
+      const gainNode = this._audioCtx.createGain();
+      
+      source.buffer = this.backgroundMusic;
+      source.loop = true;
+      gainNode.gain.value = 0.3; // Громкость 30%
+      
+      source.connect(gainNode).connect(this._audioCtx.destination);
+      source.start();
+      
+      this.isMusicPlaying = true;
+      
+      // Сохраняем ссылку для остановки
+      this.currentMusicSource = source;
+      this.currentMusicGain = gainNode;
+    };
+
+    // Если контекст приостановлен, возобновляем его
+    if (this._audioCtx.state === 'suspended') {
+      this._audioCtx.resume().then(playMusic);
+    } else {
+      playMusic();
+    }
+  }
+
+  stopBackgroundMusic() {
+    if (this.currentMusicSource) {
+      this.currentMusicSource.stop();
+      this.currentMusicSource = null;
+      this.currentMusicGain = null;
+      this.isMusicPlaying = false;
+    }
+  }
+
+  pauseBackgroundMusic() {
+    if (this.currentMusicGain) {
+      this.currentMusicGain.gain.value = 0;
+    }
+  }
+
+  resumeBackgroundMusic() {
+    if (this.currentMusicGain) {
+      this.currentMusicGain.gain.value = 0.3;
+    }
   }
 } 

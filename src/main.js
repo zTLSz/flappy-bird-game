@@ -54,6 +54,19 @@ function resizeCanvas() {
   
   // Слушаем изменение размера окна
   window.addEventListener('resize', resizeCanvas);
+  
+  // Обработчик для запуска аудио контекста при первом клике
+  let audioContextStarted = false;
+  function startAudioContext() {
+    if (!audioContextStarted && assets._audioCtx && assets._audioCtx.state === 'suspended') {
+      assets._audioCtx.resume();
+      audioContextStarted = true;
+    }
+  }
+  
+  // Добавляем обработчики для запуска аудио
+  canvas.addEventListener('click', startAudioContext);
+  canvas.addEventListener('touchstart', startAudioContext);
 
 assets.loadAll().then(() => {
   // Создаём реальную птичку
@@ -115,13 +128,19 @@ assets.loadAll().then(() => {
   });
 
   function showStartScreen() {
+    // Запускаем фоновую музыку в меню
+    assets.playBackgroundMusic();
+    
     ui.showStart(
       () => {
+        // Останавливаем музыку при начале игры
+        assets.stopBackgroundMusic();
         gameLoop.reset();
         gameLoop.start();
         ui.showScore(0);
       },
       () => {
+        // Музыка продолжает играть в таблице рекордов
         ui.showLeaderboard(() => {
           updateUIByState();
         });
@@ -134,14 +153,20 @@ assets.loadAll().then(() => {
     // Сохраняем счёт при проигрыше
     leaderboard.addScore(gameLoop.getScore());
     
+    // Возобновляем музыку в меню после игры
+    assets.playBackgroundMusic();
+    
     ui.showGameOver(
       gameLoop.getScore(),
       () => {
+        // Останавливаем музыку при повторном старте игры
+        assets.stopBackgroundMusic();
         gameLoop.reset();
         gameLoop.start();
         ui.showScore(0);
       },
       () => {
+        // Музыка продолжает играть в таблице рекордов
         ui.showLeaderboard(() => {
           updateUIByState();
         });

@@ -112,10 +112,7 @@ export class Assets {
   }
 
   playBackgroundMusic() {
-    if (!this.backgroundMusic) return;
-    
-    // Останавливаем предыдущую музыку, если она играет
-    this.stopBackgroundMusic();
+    if (!this.backgroundMusic || this.isMusicPlaying) return;
     
     this._audioCtx = this._audioCtx || new (window.AudioContext || window.webkitAudioContext)();
     

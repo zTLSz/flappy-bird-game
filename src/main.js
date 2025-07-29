@@ -127,21 +127,14 @@ assets.loadAll().then(() => {
     gameLoop.handleInput(type);
   });
 
-
   function showStartScreen() {
-    // Запускаем фоновую музыку в меню
-    assets.stopBackgroundMusic();
-    assets.playBackgroundMusic();
-    
     ui.showStart(
       () => {
-        // Останавливаем музыку при начале игры
         gameLoop.reset();
         gameLoop.start();
         ui.showScore(0);
       },
       () => {
-        // Музыка продолжает играть в таблице рекордов
         ui.showLeaderboard(() => {
           updateUIByState();
         });
@@ -154,19 +147,14 @@ assets.loadAll().then(() => {
     // Сохраняем счёт при проигрыше
     leaderboard.addScore(gameLoop.getScore());
     
-
-    
     ui.showGameOver(
       gameLoop.getScore(),
       () => {
-        // Останавливаем музыку при повторном старте игры
-        assets.stopBackgroundMusic();
         gameLoop.reset();
         gameLoop.start();
         ui.showScore(0);
       },
       () => {
-        // Музыка продолжает играть в таблице рекордов
         ui.showLeaderboard(() => {
           updateUIByState();
         });
@@ -193,4 +181,7 @@ assets.loadAll().then(() => {
 
   updateUIByState();
   renderer.render();
+  
+  // Запускаем фоновую музыку один раз при инициализации
+  assets.playBackgroundMusic();
 }); 

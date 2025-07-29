@@ -95,4 +95,75 @@ body {
     height: 60vw;
     max-width: 100vw;
   }
+}
+
+@media (max-width: 500px) {
+  body {
+    padding: 0;
+    margin: 0;
+    background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 100%);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  
+  #game-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  #game-canvas {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  
+  .ui-screen {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .ui-screen button {
+    min-width: 200px;
+    padding: 0.7rem 1.5rem;
+    font-size: 1.1rem;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  .leaderboard-list {
+    max-height: 200px;
+  }
+  
+  .score-entry {
+    font-size: 0.9rem;
+    padding: 6px 0;
+  }
 } 

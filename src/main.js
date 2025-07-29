@@ -22,10 +22,38 @@ const gameState = {
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
+
+
 const renderer = new GameRenderer(canvas, ctx, {});
 const ui = new UI();
 const assets = new Assets();
 const leaderboard = new Leaderboard();
+
+// Функция для адаптивного изменения размера canvas
+function resizeCanvas() {
+    const isMobile = window.innerWidth <= 500;
+    
+    if (isMobile) {
+      // На мобильных устройствах используем полный экран
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    } else {
+      // На десктопе используем фиксированный размер
+      canvas.width = 800;
+      canvas.height = 600;
+    }
+    
+    // Уведомляем renderer об изменении размера
+    if (renderer) {
+      renderer.resize(canvas.width, canvas.height);
+    }
+  }
+  
+  // Инициализируем размер canvas
+  resizeCanvas();
+  
+  // Слушаем изменение размера окна
+  window.addEventListener('resize', resizeCanvas);
 
 assets.loadAll().then(() => {
   // Создаём реальную птичку
@@ -48,6 +76,7 @@ assets.loadAll().then(() => {
 
   // Создаём бонусы
   const bonus = new Bonus(canvas.width, canvas.height);
+  bonus.setPipes(pipes); // Передаём ссылку на трубы
 
   // Обновляем модули с реальными объектами
   const modules = {

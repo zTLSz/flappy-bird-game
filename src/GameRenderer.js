@@ -14,6 +14,7 @@ export class GameRenderer {
     this.bonus = modules.bonus;
     this.onInput = null; // callback для делегирования ввода
     this._bindedHandleInput = this._handleInput.bind(this);
+    this.lastTouchTime = 0; // Для предотвращения двойных событий на мобильных
   }
 
   /**
@@ -59,12 +60,27 @@ export class GameRenderer {
    */
   _handleInput(e) {
     if (!this.onInput) return;
+    
     if (e.type === 'keydown' && (e.code === 'Space' || e.key === ' ')) {
       e.preventDefault();
       this.onInput('jump');
     }
-    if (e.type === 'mousedown' || e.type === 'touchstart') {
-      this.onInput('jump');
+    
+    if (e.type === 'touchstart') {
+      e.preventDefault(); // Предотвращаем стандартное поведение
+      const currentTime = Date.now();
+      if (currentTime - this.lastTouchTime > 100) { // Защита от двойных событий
+        this.lastTouchTime = currentTime;
+        this.onInput('jump');
+      }
+    }
+    
+    if (e.type === 'mousedown') {
+      // На мобильных устройствах игнорируем mousedown события
+      // так как они дублируют touchstart
+      if (!('ontouchstart' in window)) {
+        this.onInput('jump');
+      }
     }
   }
 

@@ -127,14 +127,15 @@ assets.loadAll().then(() => {
     gameLoop.handleInput(type);
   });
 
+
   function showStartScreen() {
     // Запускаем фоновую музыку в меню
+    assets.stopBackgroundMusic();
     assets.playBackgroundMusic();
     
     ui.showStart(
       () => {
         // Останавливаем музыку при начале игры
-        assets.stopBackgroundMusic();
         gameLoop.reset();
         gameLoop.start();
         ui.showScore(0);
@@ -153,8 +154,7 @@ assets.loadAll().then(() => {
     // Сохраняем счёт при проигрыше
     leaderboard.addScore(gameLoop.getScore());
     
-    // Возобновляем музыку в меню после игры
-    assets.playBackgroundMusic();
+
     
     ui.showGameOver(
       gameLoop.getScore(),

@@ -7,7 +7,7 @@ export class Pipes {
     this.spawnInterval = 2500;
     this.lastSpawnTime = 0;
     this.pipeWidth = 52;
-    this.gapSize = 250;
+    this.gapSize = 320;
     this.sprite = null;
   }
 

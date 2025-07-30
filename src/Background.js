@@ -18,8 +18,11 @@ export class Background {
   }
 
   update(deltaTime) {
+    // Используем deltaTime для независимой от FPS скорости
+    const timeScale = Math.min(deltaTime * 60, 2.0); // Ограничиваем максимальную скорость
+    
     this.clouds.forEach(cloud => {
-      cloud.x -= cloud.speed;
+      cloud.x -= cloud.speed * timeScale;
       if (cloud.x + cloud.size < 0) {
         cloud.x = this.canvasWidth + cloud.size;
         cloud.y = Math.random() * (this.canvasHeight * 0.6);

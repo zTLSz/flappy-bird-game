@@ -12,8 +12,11 @@ export class Pipes {
   }
 
   update(deltaTime) {
+    // Используем deltaTime для независимой от FPS скорости
+    const timeScale = Math.min(deltaTime * 60, 2.0); // Ограничиваем максимальную скорость
+    
     this.pipes.forEach(pipe => {
-      pipe.x -= this.speed;
+      pipe.x -= this.speed * timeScale;
     });
 
     this.pipes = this.pipes.filter(pipe => pipe.x + this.pipeWidth > 0);

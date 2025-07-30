@@ -9,7 +9,10 @@ export class Ground {
   }
 
   update(deltaTime) {
-    this.offset -= this.scrollSpeed;
+    // Используем deltaTime для независимой от FPS скорости
+    const timeScale = Math.min(deltaTime * 60, 2.0); // Ограничиваем максимальную скорость
+    
+    this.offset -= this.scrollSpeed * timeScale;
     if (this.offset <= -this.canvasWidth) {
       this.offset = 0;
     }

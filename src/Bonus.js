@@ -11,8 +11,11 @@ export class Bonus {
   }
 
   update(deltaTime) {
+    // Используем deltaTime для независимой от FPS скорости
+    const timeScale = Math.min(deltaTime * 60, 2.0); // Ограничиваем максимальную скорость
+    
     this.bonuses.forEach(bonus => {
-      bonus.x -= this.speed;
+      bonus.x -= this.speed * timeScale;
     });
 
     this.bonuses = this.bonuses.filter(bonus => bonus.x + this.bonusSize > 0);

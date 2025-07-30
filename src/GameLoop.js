@@ -46,7 +46,7 @@ export class GameLoop {
   /** Основной игровой цикл */
   _tick(currentTimestamp) {
     if (!this.isRunning) return;
-    const deltaTime = (currentTimestamp - (this.lastTimestamp || currentTimestamp)) / 1000;
+    const deltaTime = (currentTimestamp - (this.lastTimestamp || currentTimestamp)) / 400;
     this.lastTimestamp = currentTimestamp;
     this.update(deltaTime);
     if (typeof this.onUpdate === 'function') this.onUpdate();

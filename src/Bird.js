@@ -15,8 +15,11 @@ export class Bird {
   }
 
   update(deltaTime) {
-    this.velocityY += this.gravity;
-    this.y += this.velocityY;
+    // Используем deltaTime для независимой от FPS скорости
+    const timeScale = Math.min(deltaTime * 60, 2.0); // Ограничиваем максимальную скорость
+    
+    this.velocityY += this.gravity * timeScale;
+    this.y += this.velocityY * timeScale;
 
     this.rotation = Math.min(Math.PI / 2, Math.max(-Math.PI / 4, this.velocityY * 0.1));
 

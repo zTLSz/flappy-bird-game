@@ -12,6 +12,7 @@ export class GameRenderer {
     this.background = modules.background;
     this.ground = modules.ground;
     this.bonus = modules.bonus;
+    this.antiBonus = modules.antiBonus;
     this.onInput = null; // callback для делегирования ввода
     this._bindedHandleInput = this._handleInput.bind(this);
     this.lastTouchTime = 0; // Для предотвращения двойных событий на мобильных
@@ -29,6 +30,8 @@ export class GameRenderer {
     if (this.pipes) this.pipes.render(this.ctx);
     // Бонусы
     if (this.bonus) this.bonus.render(this.ctx);
+    // Антибонусы
+    if (this.antiBonus) this.antiBonus.render(this.ctx);
     // Птичка
     if (this.bird) this.bird.render(this.ctx);
     // Земля

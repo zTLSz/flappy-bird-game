@@ -9,6 +9,7 @@ export class GameLoop {
     this.pipes = modules.pipes;
     this.collision = modules.collision;
     this.bonus = modules.bonus;
+    this.antiBonus = modules.antiBonus;
     this.gameState = gameState;
     this.onUpdate = onUpdate;
     this.score = 0;
@@ -38,6 +39,7 @@ export class GameLoop {
     if (this.bird && this.bird.reset) this.bird.reset();
     if (this.pipes && this.pipes.reset) this.pipes.reset();
     if (this.bonus && this.bonus.reset) this.bonus.reset();
+    if (this.antiBonus && this.antiBonus.reset) this.antiBonus.reset();
     if (this.leaderboard) this.leaderboard.resetCurrentGame();
     this.gameState.setState('start');
     this.lastTimestamp = null;
@@ -61,6 +63,9 @@ export class GameLoop {
     if (this.bonus && this.bonus.update) {
       this.bonus.update(deltaTime);
     }
+    if (this.antiBonus && this.antiBonus.update) {
+      this.antiBonus.update(deltaTime);
+    }
     if (this.collision && this.collision.check && this.collision.check(this.bird, this.pipes)) {
       if (this.onHitSound) this.onHitSound();
       this.stop();
@@ -74,6 +79,11 @@ export class GameLoop {
     if (this.bonus && this.bonus.checkCollision && this.bonus.checkCollision(this.bird)) {
       this.score++;
       if (this.onScoreSound) this.onScoreSound();
+    }
+    // Проверка столкновения с антибонусами
+    if (this.antiBonus && this.antiBonus.checkCollision && this.antiBonus.checkCollision(this.bird)) {
+      this.score = Math.max(0, this.score - 1); // Отнимаем очко, но не меньше 0
+      if (this.onHitSound) this.onHitSound(); // Используем звук удара для антибонуса
     }
   }
 

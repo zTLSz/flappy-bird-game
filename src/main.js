@@ -9,6 +9,7 @@ import { Ground } from './Ground.js';
 import { Background } from './Background.js';
 import { Leaderboard } from './Leaderboard.js';
 import { Bonus } from './Bonus.js';
+import { AntiBonus } from './AntiBonus.js';
 
 // Простейший gameState-заглушка
 const gameState = {
@@ -28,6 +29,13 @@ const renderer = new GameRenderer(canvas, ctx, {});
 const ui = new UI();
 const assets = new Assets();
 const leaderboard = new Leaderboard();
+
+// Инициализируем лидерборд асинхронно
+leaderboard.load().then(() => {
+  console.log('Leaderboard загружен');
+}).catch(e => {
+  console.error('Ошибка загрузки leaderboard:', e);
+});
 
 // Функция для адаптивного изменения размера canvas
 function resizeCanvas() {
@@ -91,6 +99,10 @@ assets.loadAll().then(() => {
   const bonus = new Bonus(canvas.width, canvas.height);
   bonus.setPipes(pipes); // Передаём ссылку на трубы
 
+  // Создаём антибонусы
+  const antiBonus = new AntiBonus(canvas.width, canvas.height);
+  antiBonus.setPipes(pipes); // Передаём ссылку на трубы
+
   // Обновляем модули с реальными объектами
   const modules = {
     bird: bird,
@@ -100,6 +112,7 @@ assets.loadAll().then(() => {
     ground: ground,
     leaderboard: leaderboard,
     bonus: bonus,
+    antiBonus: antiBonus,
   };
 
   // Обновляем renderer с новыми модулями
@@ -108,6 +121,7 @@ assets.loadAll().then(() => {
   renderer.ground = ground;
   renderer.background = background;
   renderer.bonus = bonus;
+  renderer.antiBonus = antiBonus;
 
   const gameLoop = new GameLoop(modules, gameState, () => {
     renderer.render();
@@ -138,14 +152,14 @@ assets.loadAll().then(() => {
         ui.showLeaderboard(() => {
           updateUIByState();
         });
-        ui.updateLeaderboardList(leaderboard.getTopScores());
+        ui.updateLeaderboardList(leaderboard.getTopScores(), leaderboard.isOnline);
       }
     );
   }
 
-  function showGameOverScreen() {
+  async function showGameOverScreen() {
     // Сохраняем счёт при проигрыше
-    leaderboard.addScore(gameLoop.getScore());
+    await leaderboard.addScore(gameLoop.getScore());
     
     ui.showGameOver(
       gameLoop.getScore(),
@@ -158,7 +172,7 @@ assets.loadAll().then(() => {
         ui.showLeaderboard(() => {
           updateUIByState();
         });
-        ui.updateLeaderboardList(leaderboard.getTopScores());
+        ui.updateLeaderboardList(leaderboard.getTopScores(), leaderboard.isOnline);
       }
     );
   }

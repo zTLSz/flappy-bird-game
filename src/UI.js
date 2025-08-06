@@ -52,15 +52,23 @@ export class UI {
     backBtn.addEventListener('click', this._bindedBack);
   }
 
-  updateLeaderboardList(scores) {
+  updateLeaderboardList(scores, isOnline = false) {
     const listEl = document.querySelector('.leaderboard-list');
     if (listEl) {
       if (scores.length > 0) {
-        listEl.innerHTML = scores.map((entry, index) => 
-          `<div class="score-entry">${index + 1}. ${entry.score} (${entry.date} ${entry.time})</div>`
-        ).join('');
+        listEl.innerHTML = scores.map((entry, index) => {
+          const playerName = entry.playerName || 'Unknown';
+          return `<div class="score-entry">${index + 1}. ${playerName} - ${entry.score} (${entry.date} ${entry.time})</div>`;
+        }).join('');
       } else {
         listEl.innerHTML = '<div class="no-scores">Пока нет рекордов</div>';
+      }
+      
+      // Добавляем индикатор статуса подключения
+      const statusEl = document.querySelector('.connection-status');
+      if (statusEl) {
+        statusEl.textContent = isOnline ? '🌐 Онлайн' : '📱 Только локально';
+        statusEl.className = `connection-status ${isOnline ? 'online' : 'offline'}`;
       }
     }
   }
@@ -109,7 +117,12 @@ export class UI {
       el = document.createElement('div');
       el.id = 'leaderboard-screen';
       el.className = 'ui-screen hidden';
-      el.innerHTML = `<h2>Таблица рекордов</h2><div class="leaderboard-list"></div><button>Назад</button>`;
+      el.innerHTML = `
+        <h2>Таблица рекордов</h2>
+        <div class="connection-status offline">📱 Только локально</div>
+        <div class="leaderboard-list"></div>
+        <button>Назад</button>
+      `;
       document.getElementById('game-container').appendChild(el);
     }
     return el;

@@ -1,45 +1,106 @@
 export class Leaderboard {
   constructor() {
-    this.scores = [];
+    this.scores = []; // Глобальные рекорды из Firebase
     this.maxScores = 10;
     this.lastSavedScore = null; // Последний записанный счёт в текущей игре
+    this.isOnline = false;
+    this.playerName = this.getPlayerName();
+    
+    // Проверяем доступность Firebase
+    this.checkFirebaseAvailability();
     this.load();
   }
 
-  load() {
+  getPlayerName() {
+    let name = localStorage.getItem('flappyBirdPlayerName');
+    if (!name) {
+      name = `Player${Math.floor(Math.random() * 1000)}`;
+      localStorage.setItem('flappyBirdPlayerName', name);
+    }
+    return name;
+  }
+
+  checkFirebaseAvailability() {
+    this.isOnline = !!(window.firebaseDB && window.firebaseRef && window.firebaseSet);
+    console.log('Firebase доступен:', this.isOnline);
+  }
+
+  async load() {
     try {
-      const saved = localStorage.getItem('flappyBirdScores');
-      this.scores = saved ? JSON.parse(saved) : [];
+      // Загружаем только глобальные рекорды из Firebase
+      if (this.isOnline) {
+        await this.loadGlobalScores();
+      } else {
+        this.scores = [];
+      }
     } catch (e) {
       console.error('Ошибка загрузки рекордов:', e);
       this.scores = [];
     }
   }
 
-  save() {
+  async loadGlobalScores() {
     try {
-      localStorage.setItem('flappyBirdScores', JSON.stringify(this.scores));
+      const scoresRef = window.firebaseRef(window.firebaseDB, 'scores');
+      
+      // Сначала пробуем загрузить все рекорды без сортировки
+      const snapshot = await window.firebaseGet(scoresRef);
+      
+      if (snapshot.exists()) {
+        const scoresData = snapshot.val();
+        // Преобразуем объект в массив и сортируем локально
+        this.scores = Object.values(scoresData)
+          .filter(score => score && score.score) // Фильтруем валидные записи
+          .sort((a, b) => b.score - a.score)
+          .slice(0, this.maxScores);
+      } else {
+        this.scores = [];
+      }
     } catch (e) {
-      console.error('Ошибка сохранения рекордов:', e);
+      console.error('Ошибка загрузки глобальных рекордов:', e);
+      this.scores = [];
     }
   }
 
-  addScore(score) {
+  // Метод save больше не нужен, так как не сохраняем локально
+  // save() {
+  //   try {
+  //     localStorage.setItem('flappyBirdScores', JSON.stringify(this.scores));
+  //   } catch (e) {
+  //     console.error('Ошибка сохранения рекордов:', e);
+  //   }
+  // }
+
+  async addScore(score) {
     // Записываем только если счёт больше 0 и ещё не был записан в этой игре
     if (score > 0 && this.lastSavedScore !== score) {
       this.lastSavedScore = score;
       
       const scoreEntry = {
         score: score,
+        playerName: this.playerName,
         date: new Date().toLocaleDateString('ru-RU'),
-        time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+        time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: Date.now()
       };
       
-      this.scores.push(scoreEntry);
-      this.scores.sort((a, b) => b.score - a.score);
-      this.scores = this.scores.slice(0, this.maxScores);
-      
-      this.save();
+      // Если Firebase доступен, сохраняем в глобальную таблицу
+      if (this.isOnline) {
+        await this.saveGlobalScore(scoreEntry);
+        // Обновляем локальный список рекордов
+        await this.loadGlobalScores();
+      }
+    }
+  }
+
+  async saveGlobalScore(scoreEntry) {
+    try {
+      const scoresRef = window.firebaseRef(window.firebaseDB, 'scores');
+      const newScoreRef = window.firebasePush(scoresRef);
+      await window.firebaseSet(newScoreRef, scoreEntry);
+      console.log('Счёт сохранён в глобальную таблицу:', scoreEntry);
+    } catch (e) {
+      console.error('Ошибка сохранения в глобальную таблицу:', e);
     }
   }
 
@@ -54,7 +115,7 @@ export class Leaderboard {
   resetScores() {
     this.scores = [];
     this.currentGameScore = null;
-    this.save();
+    // Убираем вызов save(), так как больше не сохраняем локально
   }
 
   resetCurrentGame() {
@@ -62,8 +123,43 @@ export class Leaderboard {
   }
 
   formatScores() {
-    return this.scores.map((entry, index) => 
-      `${index + 1}. ${entry.score} (${entry.date} ${entry.time})`
-    ).join('\n');
+    return this.scores.map((entry, index) => {
+      const playerName = entry.playerName || 'Unknown';
+      return `${index + 1}. ${playerName} - ${entry.score} (${entry.date} ${entry.time})`;
+    }).join('\n');
+  }
+
+  // Метод getLocalScores больше не нужен, так как не используем локальные рекорды
+  // getLocalScores() {
+  //   const saved = localStorage.getItem('flappyBirdScores');
+  //   return saved ? JSON.parse(saved) : [];
+  // }
+
+  // Получить только глобальные рекорды
+  async getGlobalScores() {
+    if (!this.isOnline) return [];
+    
+    try {
+      const scoresRef = window.firebaseRef(window.firebaseDB, 'scores');
+      const snapshot = await window.firebaseGet(scoresRef);
+      
+      if (snapshot.exists()) {
+        const scoresData = snapshot.val();
+        return Object.values(scoresData)
+          .filter(score => score && score.score)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 10);
+      }
+      return [];
+    } catch (e) {
+      console.error('Ошибка получения глобальных рекордов:', e);
+      return [];
+    }
+  }
+
+  // Обновить имя игрока
+  updatePlayerName(newName) {
+    this.playerName = newName;
+    localStorage.setItem('flappyBirdPlayerName', newName);
   }
 } 

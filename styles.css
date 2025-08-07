@@ -70,6 +70,55 @@ body {
   background: linear-gradient(45deg, #9c27b0, #673ab7);
 }
 
+.ui-screen .skins-btn {
+  margin-top: 1rem;
+  background: linear-gradient(45deg, #ff9800, #ff5722);
+}
+
+.skins-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin: 20px 0;
+  max-width: 300px;
+}
+
+.skin-item {
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 auto;
+  position: relative;
+}
+
+.skin-item img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.skin-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.skin-item.selected {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #ff9800;
+  box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+}
+
 .leaderboard-list {
   margin: 20px 0;
   text-align: left;
@@ -187,5 +236,48 @@ body {
   .score-entry {
     font-size: 0.9rem;
     padding: 6px 0;
+  }
+  
+  .skins-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+    max-width: 400px;
+  }
+  
+  .skin-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .skin-item:hover {
+    border-color: #4fc3f7;
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+  }
+  
+  .skin-item.selected {
+    border-color: #4fc3f7;
+    background: rgba(79, 195, 247, 0.2);
+    transform: scale(1.1);
+  }
+  
+  .skin-item img {
+    margin-bottom: 8px;
+    border-radius: 5px;
+  }
+  
+  .skin-item span {
+    font-size: 0.9rem;
+    color: white;
+    text-align: center;
   }
 } 

@@ -79,7 +79,7 @@ function resizeCanvas() {
 assets.loadAll().then(() => {
   // Создаём реальную птичку
   const bird = new Bird(canvas.width, canvas.height);
-  bird.setSprite(assets.getImage('bird'));
+  bird.setSprite(assets.getBirdSkinImage()); // Используем текущий скин
   bird.onJumpSound = () => assets.getSound('jump')();
 
   // Создаём реальные трубы
@@ -153,6 +153,17 @@ assets.loadAll().then(() => {
           updateUIByState();
         });
         ui.updateLeaderboardList(leaderboard.getTopScores(), leaderboard.isOnline);
+      },
+      () => {
+        ui.showSkins(() => {
+          updateUIByState();
+        }, (skinIndex) => {
+          const skins = assets.getAvailableBirdSkins();
+          const selectedSkin = skins[skinIndex];
+          if (assets.setBirdSkin(selectedSkin)) {
+            bird.setSprite(assets.getBirdSkinImage());
+          }
+        }, assets.getCurrentBirdSkin());
       }
     );
   }
@@ -173,6 +184,17 @@ assets.loadAll().then(() => {
           updateUIByState();
         });
         ui.updateLeaderboardList(leaderboard.getTopScores(), leaderboard.isOnline);
+      },
+      () => {
+        ui.showSkins(() => {
+          updateUIByState();
+        }, (skinIndex) => {
+          const skins = assets.getAvailableBirdSkins();
+          const selectedSkin = skins[skinIndex];
+          if (assets.setBirdSkin(selectedSkin)) {
+            bird.setSprite(assets.getBirdSkinImage());
+          }
+        }, assets.getCurrentBirdSkin());
       }
     );
   }

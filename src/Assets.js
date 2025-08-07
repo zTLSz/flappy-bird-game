@@ -4,6 +4,8 @@ export class Assets {
     this.sounds = {};
     this._imageList = {
       bird: 'src/assets/bird.svg',
+      'bird-red': 'src/assets/bird-red.svg',
+      'bird-green': 'src/assets/bird-green.svg',
       pipe: 'src/assets/pipe.svg',
       // ground, background можно добавить позже
     };
@@ -12,6 +14,8 @@ export class Assets {
     this._audioCtx = null;
     this.backgroundMusic = null;
     this.isMusicPlaying = false;
+    this.currentBirdSkin = 'bird'; // Текущий скин птички
+    this.availableBirdSkins = ['bird', 'bird-red', 'bird-green']; // Доступные скины
   }
 
   async loadAll() {
@@ -161,5 +165,38 @@ export class Assets {
     if (this.currentMusicGain) {
       this.currentMusicGain.gain.value = 0.3;
     }
+  }
+
+  // --- Система скинов птички ---
+  getCurrentBirdSkin() {
+    return this.currentBirdSkin;
+  }
+
+  getBirdSkinImage() {
+    return this.images[this.currentBirdSkin] || this.images['bird'];
+  }
+
+  setBirdSkin(skinName) {
+    if (this.availableBirdSkins.includes(skinName)) {
+      this.currentBirdSkin = skinName;
+      return true;
+    }
+    return false;
+  }
+
+  getAvailableBirdSkins() {
+    return this.availableBirdSkins;
+  }
+
+  getNextBirdSkin() {
+    const currentIndex = this.availableBirdSkins.indexOf(this.currentBirdSkin);
+    const nextIndex = (currentIndex + 1) % this.availableBirdSkins.length;
+    return this.availableBirdSkins[nextIndex];
+  }
+
+  getPreviousBirdSkin() {
+    const currentIndex = this.availableBirdSkins.indexOf(this.currentBirdSkin);
+    const prevIndex = (currentIndex - 1 + this.availableBirdSkins.length) % this.availableBirdSkins.length;
+    return this.availableBirdSkins[prevIndex];
   }
 } 

@@ -130,15 +130,38 @@ body {
 .leaderboard-list {
   margin: 20px 0;
   text-align: left;
-  max-height: 300px;
+  max-height: 600px;
   overflow-y: auto;
+  padding-right: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.leaderboard-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.leaderboard-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.leaderboard-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.leaderboard-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .score-entry {
   padding: 8px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   font-size: 1rem;
+  display: flex;
+  align-items: center;
 }
+
 
 .no-scores {
   text-align: center;
@@ -257,13 +280,15 @@ body {
   }
   
   .leaderboard-list {
-    max-height: 200px;
+    max-height: 600px;
+    padding-right: 5px;
   }
   
   .score-entry {
     font-size: 0.9rem;
     padding: 6px 0;
   }
+  
   
   .skins-grid {
     display: grid;

@@ -1,7 +1,7 @@
 export class Leaderboard {
   constructor() {
     this.scores = []; // Глобальные рекорды из Firebase
-    this.maxScores = 10;
+    this.maxScores = 100;
     this.lastSavedScore = null; // Последний записанный счёт в текущей игре
     this.isOnline = false;
     this.playerName = this.getPlayerName();
@@ -110,7 +110,7 @@ export class Leaderboard {
   }
 
   getTopScores() {
-    return this.scores.slice(0, 5);
+    return this.scores.slice(0, 100);
   }
 
   getBestScore() {
@@ -153,7 +153,7 @@ export class Leaderboard {
         return Object.values(scoresData)
           .filter(score => score && score.score)
           .sort((a, b) => b.score - a.score)
-          .slice(0, 10);
+          .slice(0, 100);
       }
       return [];
     } catch (e) {

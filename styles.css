@@ -147,6 +147,25 @@ body {
   padding: 20px 0;
 }
 
+.telegram-user {
+  background: linear-gradient(45deg, #0088cc, #00a8ff);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 15px 0;
+  box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
+  animation: pulse 2s infinite;
+  display: inline-block;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
 .connection-status {
   padding: 8px 16px;
   border-radius: 20px;
@@ -287,5 +306,23 @@ body {
     font-size: 0.9rem;
     color: white;
     text-align: center;
+  }
+  
+  .telegram-user {
+    background: linear-gradient(45deg, #0088cc, #00a8ff);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 10px 0;
+    box-shadow: 0 2px 8px rgba(0, 136, 204, 0.3);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
   }
 } 

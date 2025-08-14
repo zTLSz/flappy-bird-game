@@ -76,9 +76,14 @@ export class Leaderboard {
     if (score > 0 && this.lastSavedScore !== score) {
       this.lastSavedScore = score;
       
+      // Получаем имя пользователя из Telegram или используем локальное
+      const userName = window.telegram?.getUserName() || this.playerName;
+      const userId = window.telegram?.getUserId() || null;
+      
       const scoreEntry = {
         score: score,
-        playerName: this.playerName,
+        playerName: userName,
+        userId: userId,
         date: new Date().toLocaleDateString('ru-RU'),
         time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
         timestamp: Date.now()

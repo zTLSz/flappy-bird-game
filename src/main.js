@@ -10,6 +10,7 @@ import { Background } from './Background.js';
 import { Leaderboard } from './Leaderboard.js';
 import { Bonus } from './Bonus.js';
 import { AntiBonus } from './AntiBonus.js';
+import { TelegramIntegration } from './TelegramIntegration.js';
 
 // Простейший gameState-заглушка
 const gameState = {
@@ -29,6 +30,9 @@ const renderer = new GameRenderer(canvas, ctx, {});
 const ui = new UI();
 const assets = new Assets();
 const leaderboard = new Leaderboard();
+
+// Инициализируем интеграцию с Telegram
+const telegram = new TelegramIntegration();
 
 // Инициализируем лидерборд асинхронно
 leaderboard.load().then(() => {
@@ -142,11 +146,20 @@ assets.loadAll().then(() => {
   });
 
   function showStartScreen() {
+    const userName = telegram.getUserName();
+    
     ui.showStart(
       () => {
         gameLoop.reset();
         gameLoop.start();
         ui.showScore(0);
+        
+        // Показываем кнопку "Вернуться в бот" в Telegram
+        if (telegram.isInTelegram()) {
+          telegram.showMainButton('Вернуться в бот', () => {
+            telegram.close();
+          });
+        }
       },
       () => {
         ui.showLeaderboard(() => {
@@ -166,18 +179,41 @@ assets.loadAll().then(() => {
         }, assets.getCurrentBirdSkin());
       }
     );
+    
+    // Обновляем заголовок с именем пользователя в Telegram
+    if (telegram.isInTelegram()) {
+      const titleElement = document.querySelector('#start-screen h1');
+      if (titleElement) {
+        titleElement.textContent = `Привет, ${userName}!`;
+      }
+    }
   }
 
   async function showGameOverScreen() {
+    const score = gameLoop.getScore();
+    const userName = telegram.getUserName();
+    
     // Сохраняем счёт при проигрыше
-    await leaderboard.addScore(gameLoop.getScore());
+    await leaderboard.addScore(score);
+    
+    // Скрываем кнопку Telegram при окончании игры
+    if (telegram.isInTelegram()) {
+      telegram.hideMainButton();
+    }
     
     ui.showGameOver(
-      gameLoop.getScore(),
+      score,
       () => {
         gameLoop.reset();
         gameLoop.start();
         ui.showScore(0);
+        
+        // Показываем кнопку "Вернуться в бот" снова
+        if (telegram.isInTelegram()) {
+          telegram.showMainButton('Вернуться в бот', () => {
+            telegram.close();
+          });
+        }
       },
       () => {
         ui.showLeaderboard(() => {
@@ -197,6 +233,12 @@ assets.loadAll().then(() => {
         }, assets.getCurrentBirdSkin());
       }
     );
+    
+    // Показываем уведомление в Telegram о результате
+    if (telegram.isInTelegram()) {
+      const message = `Игра окончена! Ваш счёт: ${score}`;
+      telegram.showAlert(message);
+    }
   }
 
   // Управление UI по состоянию игры

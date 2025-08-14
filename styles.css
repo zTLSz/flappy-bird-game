@@ -1,3 +1,11 @@
+/* Telegram Web App темы */
+:root {
+  --tg-theme-bg-color: #ffffff;
+  --tg-theme-text-color: #000000;
+  --tg-theme-button-color: #2481cc;
+  --tg-theme-button-text-color: #ffffff;
+}
+
 * {
   margin: 0;
   padding: 0;

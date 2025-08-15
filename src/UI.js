@@ -138,22 +138,24 @@ export class UI {
       el = document.createElement('div');
       el.id = 'start-screen';
       el.className = 'ui-screen';
-      
-      // Получаем имя пользователя из Telegram
-      let userName = null;
-      if (telegramUser && telegramUser.isInTelegram()) {
-        userName = telegramUser.getUserName();
-      }
-      
-      el.innerHTML = `
-        <h1>Flappy Bird</h1>
-        ${userName ? `<div class="telegram-user">Привет, ${userName}! 👋</div>` : ''}
-        <button class="start-btn">Начать игру</button>
-        <button class="leaderboard-btn">Таблица рекордов</button>
-        <button class="skins-btn">Выбор облика</button>
-      `;
       document.getElementById('game-container').appendChild(el);
     }
+    
+    // Получаем имя пользователя из Telegram
+    let userName = null;
+    if (telegramUser && telegramUser.isInTelegram()) {
+      userName = telegramUser.getUserName();
+    }
+    
+    // Обновляем содержимое экрана с актуальными данными
+    el.innerHTML = `
+      <h1>Flappy Bird</h1>
+      ${userName ? `<div class="telegram-user">Привет, ${userName}! 👋</div>` : ''}
+      <button class="start-btn">Начать игру</button>
+      <button class="leaderboard-btn">Таблица рекордов</button>
+      <button class="skins-btn">Выбор облика</button>
+    `;
+    
     return el;
   }
 

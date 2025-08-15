@@ -11,9 +11,13 @@ export class UI {
     this._bindedBack = null;
   }
 
-  showStart(onStart, onLeaderboard, onSkins) {
+  showStart(onStart, onLeaderboard, onSkins, telegramUser = null) {
     this.hideAll();
+    
+    // Пересоздаем стартовый экран с актуальными данными пользователя
+    this.startScreen = this._getOrCreateStartScreen(telegramUser);
     this.startScreen.classList.remove('hidden');
+    
     const startBtn = this.startScreen.querySelector('.start-btn');
     const leaderboardBtn = this.startScreen.querySelector('.leaderboard-btn');
     const skinsBtn = this.startScreen.querySelector('.skins-btn');
@@ -128,18 +132,19 @@ export class UI {
     if (skinsScreen) skinsScreen.classList.add('hidden');
   }
 
-  _getOrCreateStartScreen() {
+  _getOrCreateStartScreen(telegramUser = null) {
     let el = document.getElementById('start-screen');
     if (!el) {
       el = document.createElement('div');
       el.id = 'start-screen';
       el.className = 'ui-screen';
       
-      // Проверяем, запущена ли игра в Telegram Web App
-      const isTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData;
-      const userName = isTelegram ? (window.Telegram.WebApp.initDataUnsafe?.user?.first_name || 'Игрок') : null;
+      // Получаем имя пользователя из Telegram
+      let userName = null;
+      if (telegramUser && telegramUser.isInTelegram()) {
+        userName = telegramUser.getUserName();
+      }
       
-  
       el.innerHTML = `
         <h1>Flappy Bird</h1>
         ${userName ? `<div class="telegram-user">Привет, ${userName}! 👋</div>` : ''}

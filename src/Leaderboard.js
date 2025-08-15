@@ -71,14 +71,19 @@ export class Leaderboard {
   //   }
   // }
 
-  async addScore(score) {
+  async addScore(score, telegramUser = null) {
     // Записываем только если счёт больше 0 и ещё не был записан в этой игре
     if (score > 0 && this.lastSavedScore !== score) {
       this.lastSavedScore = score;
       
       // Получаем имя пользователя из Telegram или используем локальное
-      const userName = window.telegram?.getUserName() || this.playerName;
-      const userId = window.telegram?.getUserId() || null;
+      let userName = this.playerName;
+      let userId = null;
+      
+      if (telegramUser && telegramUser.isInTelegram()) {
+        userName = telegramUser.getUserName();
+        userId = telegramUser.getUserId();
+      }
       
       const scoreEntry = {
         score: score,

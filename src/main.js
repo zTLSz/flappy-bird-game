@@ -1,17 +1,17 @@
-import { GameRenderer } from './GameRenderer.js';
-import { GameLoop } from './GameLoop.js';
-import { UI } from './UI.js';
-import { Assets } from './Assets.js';
-import { Bird } from './Bird.js';
-import { Pipes } from './Pipes.js';
-import { Collision } from './Collision.js';
-import { Ground } from './Ground.js';
-import { Background } from './Background.js';
-import { Leaderboard } from './Leaderboard.js';
-import { Bonus } from './Bonus.js';
-import { AntiBonus } from './AntiBonus.js';
-import { TelegramUser } from './TelegramUser.js';
-import { ProfileIntegration } from './ProfileIntegration.js';
+import { GameRenderer } from './core/GameRenderer.js';
+import { GameLoop } from './core/GameLoop.js';
+import { UI } from './ui/UI.js';
+import { Assets } from './services/Assets.js';
+import { Bird } from './entities/Bird.js';
+import { Pipes } from './entities/Pipes.js';
+import { Collision } from './core/Collision.js';
+import { Ground } from './entities/Ground.js';
+import { Background } from './entities/Background.js';
+import { Leaderboard } from './services/Leaderboard.js';
+import { Bonus } from './entities/Bonus.js';
+import { AntiBonus } from './entities/AntiBonus.js';
+import { TelegramUser } from './services/TelegramUser.js';
+import { ProfileIntegration } from './services/ProfileIntegration.js';
 
 // Простейший gameState-заглушка
 const gameState = {

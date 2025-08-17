@@ -62,15 +62,6 @@ export class Leaderboard {
     }
   }
 
-  // Метод save больше не нужен, так как не сохраняем локально
-  // save() {
-  //   try {
-  //     localStorage.setItem('flappyBirdScores', JSON.stringify(this.scores));
-  //   } catch (e) {
-  //     console.error('Ошибка сохранения рекордов:', e);
-  //   }
-  // }
-
   async addScore(score, telegramUser = null) {
     // Записываем только если счёт больше 0 и ещё не был записан в этой игре
     if (score > 0 && this.lastSavedScore !== score) {

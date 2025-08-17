@@ -11,19 +11,27 @@ export class UI {
     this._bindedBack = null;
   }
 
-  showStart(onStart, onLeaderboard, onSkins, telegramUser = null) {
+  showStart(onStart, onLeaderboard, onSkins, telegramUser = null, totalEarned = 0) {
     this.hideAll();
+    
     
     // Пересоздаем стартовый экран с актуальными данными пользователя
     this.startScreen = this._getOrCreateStartScreen(telegramUser);
     this.startScreen.classList.remove('hidden');
+    
+    // Обновляем отображение токенов после создания DOM
+    setTimeout(() => {
+      this.updateTokenDisplay(totalEarned);
+    }, 0);
     
     const startBtn = this.startScreen.querySelector('.start-btn');
     const leaderboardBtn = this.startScreen.querySelector('.leaderboard-btn');
     const skinsBtn = this.startScreen.querySelector('.skins-btn');
     
     if (this._bindedStart) startBtn.removeEventListener('click', this._bindedStart);
-    this._bindedStart = () => onStart && onStart();
+    this._bindedStart = () => {
+      onStart && onStart();
+    };
     startBtn.addEventListener('click', this._bindedStart);
     
     if (this._bindedLeaderboard) leaderboardBtn.removeEventListener('click', this._bindedLeaderboard);
@@ -35,10 +43,21 @@ export class UI {
     skinsBtn.addEventListener('click', this._bindedSkins);
   }
 
-  showGameOver(score, onRestart, onLeaderboard, onSkins) {
+  showGameOver(score, onRestart, onLeaderboard, onSkins, gameTokensEarned = 0, totalTokensEarned = 0) {
     this.hideAll();
     this.gameOverScreen.classList.remove('hidden');
     this.gameOverScreen.querySelector('.final-score').textContent = `Счёт: ${score}`;
+    
+    // Обновляем отображение токенов
+    const gameTokensElement = this.gameOverScreen.querySelector('#game-tokens-earned');
+    const totalTokensElement = this.gameOverScreen.querySelector('#total-tokens-earned');
+    
+    if (gameTokensElement) {
+      gameTokensElement.textContent = `${gameTokensEarned} 🪙`;
+    }
+    if (totalTokensElement) {
+      totalTokensElement.textContent = `${totalTokensEarned} 🪙`;
+    }
     
     const restartBtn = this.gameOverScreen.querySelector('.restart-btn');
     const leaderboardBtn = this.gameOverScreen.querySelector('.leaderboard-btn');
@@ -119,7 +138,39 @@ export class UI {
   showScore(score) {
     this.hideAll();
     this.scoreDisplay.classList.remove('hidden');
-    this.scoreDisplay.textContent = score;
+    
+    // Создаем контейнер для счета и токенов
+    if (!this.scoreDisplay.querySelector('.score-container')) {
+      this.scoreDisplay.innerHTML = `
+        <div class="score-container">
+          <div class="score-text">${score}</div>
+          <div class="tokens-earned">+${Math.floor(score / 5)} 🪙</div>
+        </div>
+      `;
+    } else {
+      this.scoreDisplay.querySelector('.score-text').textContent = score;
+      this.scoreDisplay.querySelector('.tokens-earned').textContent = `+${Math.floor(score / 5)} 🪙`;
+    }
+  }
+
+  updateTokenDisplay(totalEarned) {
+    // Обновляем отображение токенов на главном экране
+    const tokenDisplay = document.getElementById('token-display');
+    if (tokenDisplay) {
+      tokenDisplay.textContent = `${totalEarned} 🪙`;
+    } else {
+      console.warn('⚠️ Элемент token-display не найден, попробуем найти в start-screen');
+      // Попробуем найти элемент внутри start-screen
+      const startScreen = document.getElementById('start-screen');
+      if (startScreen) {
+        const tokenDisplayInStart = startScreen.querySelector('#token-display');
+        if (tokenDisplayInStart) {
+          tokenDisplayInStart.textContent = `${totalEarned} 🪙`;
+        } else {
+          console.error('❌ Элемент token-display не найден даже в start-screen');
+        }
+      }
+    }
   }
 
   hideAll() {
@@ -151,6 +202,10 @@ export class UI {
     el.innerHTML = `
       <h1>Flappy Bird</h1>
       ${userName ? `<div class="telegram-user">Привет, ${userName}! 👋</div>` : ''}
+      <div class="token-info">
+        <div class="token-label">Заработано токенов:</div>
+        <div id="token-display" class="token-display">0 🪙</div>
+      </div>
       <button class="start-btn">Начать игру</button>
       <button class="leaderboard-btn">Таблица рекордов</button>
       <button class="skins-btn">Выбор облика</button>
@@ -168,6 +223,16 @@ export class UI {
       el.innerHTML = `
         <h2>Игра окончена</h2>
         <div class="final-score"></div>
+        <div class="game-stats">
+          <div class="token-info">
+            <div class="token-label">Заработано в этой игре:</div>
+            <div id="game-tokens-earned" class="token-display">0 🪙</div>
+          </div>
+          <div class="token-info">
+            <div class="token-label">Всего заработано:</div>
+            <div id="total-tokens-earned" class="token-display">0 🪙</div>
+          </div>
+        </div>
         <button class="restart-btn">Сыграть ещё</button>
         <button class="leaderboard-btn">Таблица рекордов</button>
         <button class="skins-btn">Выбор облика</button>

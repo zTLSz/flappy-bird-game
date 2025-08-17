@@ -11,6 +11,7 @@ import { Leaderboard } from './Leaderboard.js';
 import { Bonus } from './Bonus.js';
 import { AntiBonus } from './AntiBonus.js';
 import { TelegramUser } from './TelegramUser.js';
+import { ProfileIntegration } from './ProfileIntegration.js';
 
 // Простейший gameState-заглушка
 const gameState = {
@@ -34,13 +35,32 @@ const leaderboard = new Leaderboard();
 // Инициализируем модуль для работы с пользователем Telegram
 const telegramUser = new TelegramUser();
 
+// Инициализируем систему профилей
+const profileIntegration = new ProfileIntegration();
 
-// Инициализируем лидерборд асинхронно
-leaderboard.load().then(() => {
-  console.log('Leaderboard загружен');
-}).catch(e => {
-  console.error('Ошибка загрузки leaderboard:', e);
-});
+
+// Инициализируем лидерборд и профиль асинхронно
+async function initializeGameData() {
+  try {
+    // Загружаем лидерборд
+    await leaderboard.load();
+    console.log('✅ Leaderboard загружен');
+    
+    // Инициализируем профиль пользователя
+    const profileInitialized = await profileIntegration.initializeProfile();
+    if (profileInitialized) {
+      console.log('✅ Профиль пользователя инициализирован');
+    } else {
+      console.warn('⚠️ Профиль не инициализирован, игра продолжится без сохранения');
+    }
+    
+    // После инициализации данных показываем стартовый экран
+    return true;
+  } catch (e) {
+    console.error('❌ Ошибка инициализации данных:', e);
+    return false;
+  }
+}
 
 // Функция для адаптивного изменения размера canvas
 function resizeCanvas() {
@@ -131,7 +151,15 @@ assets.loadAll().then(() => {
   const gameLoop = new GameLoop(modules, gameState, () => {
     renderer.render();
     if (gameState.isPlaying()) {
-      ui.showScore(gameLoop.getScore());
+      const score = gameLoop.getScore();
+      ui.showScore(score);
+      
+      // Обновляем отображение токенов в реальном времени
+      const currentProfile = profileIntegration.getCurrentProfile();
+      if (currentProfile) {
+        const totalEarned = currentProfile.coins.totalEarned;
+        ui.updateTokenDisplay(totalEarned);
+      }
     }
   });
 
@@ -146,7 +174,28 @@ assets.loadAll().then(() => {
     gameLoop.handleInput(type);
   });
 
+  // Управление UI по состоянию игры
+  function updateUIByState() {
+    if (gameState.isStart()) {
+      showStartScreen();
+    } else if (gameState.isGameOver()) {
+      showGameOverScreen();
+    }
+  }
+
+  // Следим за сменой состояния (в реальном gameState будет событие)
+  const origSetState = gameState.setState.bind(gameState);
+  gameState.setState = function(state) {
+    origSetState(state);
+    updateUIByState();
+  };
+
   function showStartScreen() {
+    // Получаем данные о заработанных токенах
+    const currentProfile = profileIntegration.getCurrentProfile();
+    const totalEarned = currentProfile ? currentProfile.coins.totalEarned : 0;
+    
+    
     ui.showStart(
       () => {
         gameLoop.reset();
@@ -170,7 +219,8 @@ assets.loadAll().then(() => {
           }
         }, assets.getCurrentBirdSkin());
       },
-      telegramUser
+      telegramUser,
+      totalEarned
     );
   }
 
@@ -179,6 +229,18 @@ assets.loadAll().then(() => {
     
     // Сохраняем счёт при проигрыше
     await leaderboard.addScore(score, telegramUser);
+    
+    // Обновляем профиль с результатами игры
+    if (score > 0) {
+      const coinsEarned = Math.floor(score / 5); // 1 монета за каждые 5 очков
+      await profileIntegration.updateProfileAfterGame(score, coinsEarned);
+      await profileIntegration.checkAchievements(score);
+    }
+    
+    // Получаем данные о токенах для отображения
+    const currentProfile = profileIntegration.getCurrentProfile();
+    const gameTokensEarned = score > 0 ? Math.floor(score / 5) : 0;
+    const totalTokensEarned = currentProfile ? currentProfile.coins.totalEarned : 0;
     
     ui.showGameOver(
       score,
@@ -203,29 +265,31 @@ assets.loadAll().then(() => {
             bird.setSprite(assets.getBirdSkinImage());
           }
         }, assets.getCurrentBirdSkin());
-      }
+      },
+      gameTokensEarned,
+      totalTokensEarned
     );
-  }
-
-  // Управление UI по состоянию игры
-  function updateUIByState() {
-    if (gameState.isStart()) {
-      showStartScreen();
-    } else if (gameState.isGameOver()) {
-      showGameOverScreen();
+    
+    // Обновляем отображение токенов после игры
+    const updatedProfile = profileIntegration.getCurrentProfile();
+    if (updatedProfile) {
+      ui.updateTokenDisplay(updatedProfile.coins.totalEarned);
     }
   }
 
-  // Следим за сменой состояния (в реальном gameState будет событие)
-  const origSetState = gameState.setState.bind(gameState);
-  gameState.setState = function(state) {
-    origSetState(state);
-    updateUIByState();
-  };
-
-  updateUIByState();
+  // Рендерим начальный кадр
   renderer.render();
   
   // Запускаем фоновую музыку один раз при инициализации
   assets.playBackgroundMusic();
+  
+  // Запускаем инициализацию данных (включая профиль) после создания всех игровых объектов
+  initializeGameData().then(() => {
+    // После инициализации данных показываем стартовый экран
+    updateUIByState();
+  }).catch((error) => {
+    console.error('❌ Ошибка инициализации:', error);
+    // Даже при ошибке показываем стартовый экран
+    updateUIByState();
+  });
 }); 

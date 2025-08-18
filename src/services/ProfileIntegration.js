@@ -9,6 +9,8 @@ export class ProfileIntegration {
     this.profileManager = new UserProfileManager();
     this.telegramUser = new TelegramUser();
     this.currentProfile = null;
+    this.lastProcessedGameId = null; // Флаг для предотвращения дублирования токенов
+    this.recentGames = {}; // Объект для отслеживания недавних игр
   }
 
   /**
@@ -83,6 +85,25 @@ export class ProfileIntegration {
     const userId = this.telegramUser.getUserId();
     if (!userId) return;
 
+    // Создаем уникальный ID игры
+    const gameId = `game_${Date.now()}_${gameScore}`;
+    
+    // Проверяем, не обрабатывали ли мы уже эту игру
+    if (this.lastProcessedGameId === gameId) {
+      console.log('⚠️ Игра уже была обработана, пропускаем обновление токенов');
+      return;
+    }
+    
+    // Проверяем, не обрабатывали ли мы игру с таким же счетом недавно (в течение 5 секунд)
+    const recentGameKey = `recent_${gameScore}`;
+    const now = Date.now();
+    const lastProcessedTime = this.recentGames ? this.recentGames[recentGameKey] : 0;
+    
+    if (now - lastProcessedTime < 5000) {
+      console.log('⚠️ Игра с таким счетом уже была обработана недавно, пропускаем обновление токенов');
+      return;
+    }
+
     try {
       // Обновляем статистику игры
       const updates = {
@@ -138,10 +159,15 @@ export class ProfileIntegration {
       // Обновляем UI
       this.updateProfileUI();
 
+      // Обновляем флаги для предотвращения дублирования
+      this.lastProcessedGameId = gameId;
+      this.recentGames[recentGameKey] = now;
+
       console.log('✅ Профиль обновлен после игры:', {
         score: gameScore,
         coinsEarned: coinsEarned,
-        newBalance: this.currentProfile.coins.balance
+        newBalance: this.currentProfile.coins.balance,
+        gameId: gameId
       });
 
     } catch (error) {
@@ -257,6 +283,15 @@ export class ProfileIntegration {
   }
 
   /**
+   * Сбрасывает флаги для новой игры
+   */
+  resetGameFlags() {
+    this.lastProcessedGameId = null;
+    this.recentGames = {};
+    console.log('🔄 Флаги игры сброшены для новой игры');
+  }
+
+  /**
    * Получает отладочную информацию
    * @returns {Object} отладочная информация
    */
@@ -268,7 +303,9 @@ export class ProfileIntegration {
         username: this.currentProfile.profile.username,
         coins: this.currentProfile.coins.balance,
         gamesPlayed: this.currentProfile.profile.totalGamesPlayed
-      } : null
+      } : null,
+      lastProcessedGameId: this.lastProcessedGameId,
+      recentGames: Object.keys(this.recentGames).length
     };
   }
 }

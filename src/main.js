@@ -16,6 +16,7 @@ import { ProfileIntegration } from './services/ProfileIntegration.js';
 // Простейший gameState-заглушка
 const gameState = {
   _state: 'start',
+  _gameOverProcessed: false, // Флаг для предотвращения повторной обработки Game Over
   setState(state) { this._state = state; },
   isPlaying() { return this._state === 'playing'; },
   isGameOver() { return this._state === 'gameOver'; },
@@ -198,6 +199,9 @@ assets.loadAll().then(() => {
     
     ui.showStart(
       () => {
+        // Сбрасываем флаги для новой игры
+        profileIntegration.resetGameFlags();
+        gameState._gameOverProcessed = false; // Сбрасываем флаг обработки Game Over
         gameLoop.reset();
         gameLoop.start();
         ui.showScore(0);
@@ -230,11 +234,14 @@ assets.loadAll().then(() => {
     // Сохраняем счёт при проигрыше
     await leaderboard.addScore(score, telegramUser);
     
-    // Обновляем профиль с результатами игры
-    if (score > 0) {
+    // Обновляем профиль с результатами игры (только если это первое показывание Game Over)
+    if (score > 0 && !gameState._gameOverProcessed) {
       const coinsEarned = Math.floor(score / 5); // 1 монета за каждые 5 очков
       await profileIntegration.updateProfileAfterGame(score, coinsEarned);
       await profileIntegration.checkAchievements(score);
+      
+      // Отмечаем, что Game Over уже обработан
+      gameState._gameOverProcessed = true;
     }
     
     // Получаем данные о токенах для отображения
@@ -245,6 +252,9 @@ assets.loadAll().then(() => {
     ui.showGameOver(
       score,
       () => {
+        // Сбрасываем флаги для новой игры
+        profileIntegration.resetGameFlags();
+        gameState._gameOverProcessed = false; // Сбрасываем флаг обработки Game Over
         gameLoop.reset();
         gameLoop.start();
         ui.showScore(0);

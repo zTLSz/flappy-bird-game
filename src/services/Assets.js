@@ -16,6 +16,10 @@ export class Assets {
     this.isMusicPlaying = false;
     this.currentBirdSkin = 'bird'; // Текущий скин птички
     this.availableBirdSkins = ['bird', 'bird-red', 'bird-green']; // Доступные скины
+    
+    // Система управления звуком
+    this.isSoundEnabled = this._loadSoundState();
+    this.masterGainNode = null;
   }
 
   async loadAll() {
@@ -48,6 +52,12 @@ export class Assets {
 
   async _generateSounds() {
     this._audioCtx = this._audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Создаем master gain node для управления всеми звуками
+    this.masterGainNode = this._audioCtx.createGain();
+    this.masterGainNode.gain.value = this.isSoundEnabled ? 1 : 0;
+    this.masterGainNode.connect(this._audioCtx.destination);
+    
     // Генерируем три простых звука
     this.sounds.jump = this._createJumpSound();
     this.sounds.hit = this._createHitSound();
@@ -57,13 +67,15 @@ export class Assets {
   // --- Генераторы звуков ---
   _createJumpSound() {
     return () => {
+      if (!this.isSoundEnabled) return;
+      
       const ctx = this._audioCtx;
       const o = ctx.createOscillator();
       const g = ctx.createGain();
       o.type = 'square';
       o.frequency.value = 600;
       g.gain.value = 0.15;
-      o.connect(g).connect(ctx.destination);
+      o.connect(g).connect(this.masterGainNode);
       o.start();
       o.frequency.linearRampToValueAtTime(300, ctx.currentTime + 0.15);
       o.stop(ctx.currentTime + 0.18);
@@ -72,13 +84,15 @@ export class Assets {
 
   _createHitSound() {
     return () => {
+      if (!this.isSoundEnabled) return;
+      
       const ctx = this._audioCtx;
       const o = ctx.createOscillator();
       const g = ctx.createGain();
       o.type = 'sawtooth';
       o.frequency.value = 120;
       g.gain.value = 0.22;
-      o.connect(g).connect(ctx.destination);
+      o.connect(g).connect(this.masterGainNode);
       o.start();
       o.frequency.linearRampToValueAtTime(40, ctx.currentTime + 0.18);
       g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.18);
@@ -88,13 +102,15 @@ export class Assets {
 
   _createScoreSound() {
     return () => {
+      if (!this.isSoundEnabled) return;
+      
       const ctx = this._audioCtx;
       const o = ctx.createOscillator();
       const g = ctx.createGain();
       o.type = 'triangle';
       o.frequency.value = 400;
       g.gain.value = 0.13;
-      o.connect(g).connect(ctx.destination);
+      o.connect(g).connect(this.masterGainNode);
       o.start();
       o.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.09);
       g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.12);
@@ -126,7 +142,7 @@ export class Assets {
       
       source.buffer = this.backgroundMusic;
       source.loop = true;
-      gainNode.gain.value = 0.3; // Громкость 30%
+      gainNode.gain.value = this.isSoundEnabled ? 0.3 : 0; // Громкость зависит от состояния звука
       
       source.connect(gainNode).connect(this._audioCtx.destination);
       source.start();
@@ -186,6 +202,71 @@ export class Assets {
 
   getAvailableBirdSkins() {
     return this.availableBirdSkins;
+  }
+
+  // --- Система управления звуком ---
+  
+  _loadSoundState() {
+    try {
+      const savedState = localStorage.getItem('flappyBirdSoundEnabled');
+      return savedState === null ? true : JSON.parse(savedState);
+    } catch (error) {
+      console.warn('Ошибка загрузки состояния звука:', error);
+      return true;
+    }
+  }
+
+  _saveSoundState() {
+    try {
+      localStorage.setItem('flappyBirdSoundEnabled', JSON.stringify(this.isSoundEnabled));
+    } catch (error) {
+      console.warn('Ошибка сохранения состояния звука:', error);
+    }
+  }
+
+  toggleSound() {
+    this.isSoundEnabled = !this.isSoundEnabled;
+    this._saveSoundState();
+    
+    if (this.isSoundEnabled) {
+      this.enableSound();
+    } else {
+      this.disableSound();
+    }
+    
+    console.log('🔊 Звук переключен:', this.isSoundEnabled ? 'включен' : 'выключен');
+    console.log('🔊 Состояние сохранено в localStorage:', this._loadSoundState());
+    return this.isSoundEnabled;
+  }
+
+  enableSound() {
+    this.isSoundEnabled = true;
+    this._saveSoundState();
+    
+    if (this.masterGainNode) {
+      this.masterGainNode.gain.value = 1;
+    }
+    
+    if (this.isMusicPlaying && this.currentMusicGain) {
+      this.currentMusicGain.gain.value = 0.3;
+    }
+  }
+
+  disableSound() {
+    this.isSoundEnabled = false;
+    this._saveSoundState();
+    
+    if (this.masterGainNode) {
+      this.masterGainNode.gain.value = 0;
+    }
+    
+    if (this.currentMusicGain) {
+      this.currentMusicGain.gain.value = 0;
+    }
+  }
+
+  isSoundOn() {
+    return this.isSoundEnabled;
   }
 
   getNextBirdSkin() {

@@ -223,9 +223,17 @@ assets.loadAll().then(() => {
           }
         }, assets.getCurrentBirdSkin());
       },
+      () => {
+        // Переключаем звук
+        const isSoundOn = assets.toggleSound();
+        ui.updateSoundButton(isSoundOn);
+      },
       telegramUser,
       totalEarned
     );
+    
+    // Обновляем состояние кнопки звука после показа экрана
+    ui.updateSoundButton(assets.isSoundOn());
   }
 
   async function showGameOverScreen() {
@@ -276,6 +284,11 @@ assets.loadAll().then(() => {
           }
         }, assets.getCurrentBirdSkin());
       },
+      () => {
+        // Переключаем звук
+        const isSoundOn = assets.toggleSound();
+        ui.updateSoundButton(isSoundOn);
+      },
       gameTokensEarned,
       totalTokensEarned
     );
@@ -285,6 +298,9 @@ assets.loadAll().then(() => {
     if (updatedProfile) {
       ui.updateTokenDisplay(updatedProfile.coins.totalEarned);
     }
+    
+    // Обновляем состояние кнопки звука после показа экрана
+    ui.updateSoundButton(assets.isSoundOn());
   }
 
   // Рендерим начальный кадр
@@ -297,9 +313,15 @@ assets.loadAll().then(() => {
   initializeGameData().then(() => {
     // После инициализации данных показываем стартовый экран
     updateUIByState();
+    
+    // Инициализируем состояние кнопки звука
+    ui.updateSoundButton(assets.isSoundOn());
   }).catch((error) => {
     console.error('❌ Ошибка инициализации:', error);
     // Даже при ошибке показываем стартовый экран
     updateUIByState();
+    
+    // Инициализируем состояние кнопки звука
+    ui.updateSoundButton(assets.isSoundOn());
   });
 }); 

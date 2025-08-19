@@ -9,9 +9,10 @@ export class UI {
     this._bindedSkins = null;
     this._bindedSkinSelect = null;
     this._bindedBack = null;
+    this._bindedSoundToggle = null;
   }
 
-  showStart(onStart, onLeaderboard, onSkins, telegramUser = null, totalEarned = 0) {
+  showStart(onStart, onLeaderboard, onSkins, onSoundToggle, telegramUser = null, totalEarned = 0) {
     this.hideAll();
     
     
@@ -27,6 +28,7 @@ export class UI {
     const startBtn = this.startScreen.querySelector('.start-btn');
     const leaderboardBtn = this.startScreen.querySelector('.leaderboard-btn');
     const skinsBtn = this.startScreen.querySelector('.skins-btn');
+    const soundBtn = this.startScreen.querySelector('.sound-toggle-btn');
     
     if (this._bindedStart) startBtn.removeEventListener('click', this._bindedStart);
     this._bindedStart = () => {
@@ -41,10 +43,17 @@ export class UI {
     if (this._bindedSkins) skinsBtn.removeEventListener('click', this._bindedSkins);
     this._bindedSkins = () => onSkins && onSkins();
     skinsBtn.addEventListener('click', this._bindedSkins);
+    
+    if (this._bindedSoundToggle) soundBtn.removeEventListener('click', this._bindedSoundToggle);
+    this._bindedSoundToggle = () => onSoundToggle && onSoundToggle();
+    soundBtn.addEventListener('click', this._bindedSoundToggle);
   }
 
-  showGameOver(score, onRestart, onLeaderboard, onSkins, gameTokensEarned = 0, totalTokensEarned = 0) {
+  showGameOver(score, onRestart, onLeaderboard, onSkins, onSoundToggle, gameTokensEarned = 0, totalTokensEarned = 0) {
     this.hideAll();
+    
+    // Пересоздаем экран геймовера с актуальными данными
+    this.gameOverScreen = this._getOrCreateGameOverScreen();
     this.gameOverScreen.classList.remove('hidden');
     this.gameOverScreen.querySelector('.final-score').textContent = `Счёт: ${score}`;
     
@@ -62,7 +71,9 @@ export class UI {
     const restartBtn = this.gameOverScreen.querySelector('.restart-btn');
     const leaderboardBtn = this.gameOverScreen.querySelector('.leaderboard-btn');
     const skinsBtn = this.gameOverScreen.querySelector('.skins-btn');
+    const soundBtn = this.gameOverScreen.querySelector('.sound-toggle-btn');
     
+    // Удаляем старые обработчики и привязываем новые
     if (this._bindedRestart) restartBtn.removeEventListener('click', this._bindedRestart);
     this._bindedRestart = () => onRestart && onRestart();
     restartBtn.addEventListener('click', this._bindedRestart);
@@ -74,6 +85,10 @@ export class UI {
     if (this._bindedSkins) skinsBtn.removeEventListener('click', this._bindedSkins);
     this._bindedSkins = () => onSkins && onSkins();
     skinsBtn.addEventListener('click', this._bindedSkins);
+    
+    if (this._bindedSoundToggle) soundBtn.removeEventListener('click', this._bindedSoundToggle);
+    this._bindedSoundToggle = () => onSoundToggle && onSoundToggle();
+    soundBtn.addEventListener('click', this._bindedSoundToggle);
   }
 
   showLeaderboard(onBack) {
@@ -173,6 +188,24 @@ export class UI {
     }
   }
 
+  updateSoundButton(isSoundOn) {
+    const soundButtons = document.querySelectorAll('.sound-toggle-btn');
+    soundButtons.forEach(button => {
+      if (isSoundOn) {
+        button.innerHTML = '🔊';
+        button.classList.remove('sound-off');
+        button.classList.add('sound-on');
+      } else {
+        button.innerHTML = '🔇';
+        button.classList.remove('sound-on');
+        button.classList.add('sound-off');
+      }
+    });
+    
+    // Добавляем отладочную информацию
+    console.log(`🔊 Обновление кнопки звука: ${isSoundOn ? 'включен' : 'выключен'}, найдено кнопок: ${soundButtons.length}`);
+  }
+
   hideAll() {
     this.startScreen.classList.add('hidden');
     this.gameOverScreen.classList.add('hidden');
@@ -184,13 +217,16 @@ export class UI {
   }
 
   _getOrCreateStartScreen(telegramUser = null) {
-    let el = document.getElementById('start-screen');
-    if (!el) {
-      el = document.createElement('div');
-      el.id = 'start-screen';
-      el.className = 'ui-screen';
-      document.getElementById('game-container').appendChild(el);
+    // Удаляем старый стартовый экран, если он существует
+    let oldEl = document.getElementById('start-screen');
+    if (oldEl) {
+      oldEl.remove();
     }
+    
+    // Создаем новый стартовый экран
+    const el = document.createElement('div');
+    el.id = 'start-screen';
+    el.className = 'ui-screen';
     
     // Получаем имя пользователя из Telegram
     let userName = null;
@@ -209,36 +245,43 @@ export class UI {
       <button class="start-btn">Начать игру</button>
       <button class="leaderboard-btn">Таблица рекордов</button>
       <button class="skins-btn">Выбор облика</button>
+      <button class="sound-toggle-btn sound-on">🔊</button>
     `;
     
+    document.getElementById('game-container').appendChild(el);
     return el;
   }
 
   _getOrCreateGameOverScreen() {
-    let el = document.getElementById('gameover-screen');
-    if (!el) {
-      el = document.createElement('div');
-      el.id = 'gameover-screen';
-      el.className = 'ui-screen hidden';
-      el.innerHTML = `
-        <h2>Игра окончена</h2>
-        <div class="final-score"></div>
-        <div class="game-stats">
-          <div class="token-info">
-            <div class="token-label">Заработано в этой игре:</div>
-            <div id="game-tokens-earned" class="token-display">0 🪙</div>
-          </div>
-          <div class="token-info">
-            <div class="token-label">Всего заработано:</div>
-            <div id="total-tokens-earned" class="token-display">0 🪙</div>
-          </div>
-        </div>
-        <button class="restart-btn">Сыграть ещё</button>
-        <button class="leaderboard-btn">Таблица рекордов</button>
-        <button class="skins-btn">Выбор облика</button>
-      `;
-      document.getElementById('game-container').appendChild(el);
+    // Удаляем старый экран геймовера, если он существует
+    let oldEl = document.getElementById('gameover-screen');
+    if (oldEl) {
+      oldEl.remove();
     }
+    
+    // Создаем новый экран геймовера
+    const el = document.createElement('div');
+    el.id = 'gameover-screen';
+    el.className = 'ui-screen hidden';
+    el.innerHTML = `
+      <h2>Игра окончена</h2>
+      <div class="final-score"></div>
+      <div class="game-stats">
+        <div class="token-info">
+          <div class="token-label">Заработано в этой игре:</div>
+          <div id="game-tokens-earned" class="token-display">0 🪙</div>
+        </div>
+        <div class="token-info">
+          <div class="token-label">Всего заработано:</div>
+          <div id="total-tokens-earned" class="token-display">0 🪙</div>
+        </div>
+      </div>
+      <button class="restart-btn">Сыграть ещё</button>
+      <button class="leaderboard-btn">Таблица рекордов</button>
+      <button class="skins-btn">Выбор облика</button>
+      <button class="sound-toggle-btn sound-on">🔊</button>
+    `;
+    document.getElementById('game-container').appendChild(el);
     return el;
   }
 

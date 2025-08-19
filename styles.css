@@ -124,6 +124,67 @@ body {
   font-size: 20px;
 }
 
+/* Отдельный стиль для кнопки звука - переопределяет общие стили */
+.ui-screen .sound-toggle-btn,
+.sound-toggle-btn {
+  position: fixed !important;
+  bottom: 15px !important;
+  right: 15px !important;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  color: white !important;
+  font-size: 18px !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1000 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  font-weight: normal !important;
+}
+
+.ui-screen .sound-toggle-btn:hover,
+.sound-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.4) !important;
+  transform: none !important;
+}
+
+.ui-screen .sound-toggle-btn:active,
+.sound-toggle-btn:active {
+  transform: scale(0.95) !important;
+}
+
+.ui-screen .sound-toggle-btn.sound-on,
+.sound-toggle-btn.sound-on {
+  background: rgba(76, 175, 80, 0.5) !important;
+}
+
+.ui-screen .sound-toggle-btn.sound-off,
+.sound-toggle-btn.sound-off {
+  background: rgba(244, 67, 54, 0.5) !important;
+}
+
+.sound-toggle-btn.sound-off::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 12px;
+  background: white;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border-radius: 1px;
+}
+
 /* Стили для отображения счета и токенов во время игры */
 .score-container {
   display: flex;

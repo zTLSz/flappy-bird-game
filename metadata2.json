@@ -1,0 +1,12 @@
+{
+    "name": "flappy bird coin",
+    "symbol": "FBDC",
+    "description": "Flappy coin",
+    "image": "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/Climate/image.png",
+    "attributes": [
+      {
+        "trait_type": "Item",
+        "value": "Bird"
+      }
+    ]
+  }

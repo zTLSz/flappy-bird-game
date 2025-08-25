@@ -10,9 +10,11 @@ export class UI {
     this._bindedSkinSelect = null;
     this._bindedBack = null;
     this._bindedSoundToggle = null;
+    this._bindedWithdraw = null;
+    this._bindedConfirm = null;
   }
 
-  showStart(onStart, onLeaderboard, onSkins, onSoundToggle, telegramUser = null, totalEarned = 0) {
+  showStart(onStart, onLeaderboard, onSkins, onSoundToggle, onWithdraw, telegramUser = null, totalEarned = 0) {
     this.hideAll();
     
     
@@ -28,6 +30,7 @@ export class UI {
     const startBtn = this.startScreen.querySelector('.start-btn');
     const leaderboardBtn = this.startScreen.querySelector('.leaderboard-btn');
     const skinsBtn = this.startScreen.querySelector('.skins-btn');
+    const withdrawBtn = this.startScreen.querySelector('.withdraw-btn');
     const soundBtn = this.startScreen.querySelector('.sound-toggle-btn');
     
     if (this._bindedStart) startBtn.removeEventListener('click', this._bindedStart);
@@ -44,12 +47,16 @@ export class UI {
     this._bindedSkins = () => onSkins && onSkins();
     skinsBtn.addEventListener('click', this._bindedSkins);
     
+    if (this._bindedWithdraw) withdrawBtn.removeEventListener('click', this._bindedWithdraw);
+    this._bindedWithdraw = () => onWithdraw && onWithdraw();
+    withdrawBtn.addEventListener('click', this._bindedWithdraw);
+    
     if (this._bindedSoundToggle) soundBtn.removeEventListener('click', this._bindedSoundToggle);
     this._bindedSoundToggle = () => onSoundToggle && onSoundToggle();
     soundBtn.addEventListener('click', this._bindedSoundToggle);
   }
 
-  showGameOver(score, onRestart, onLeaderboard, onSkins, onSoundToggle, gameTokensEarned = 0, totalTokensEarned = 0) {
+  showGameOver(score, onRestart, onLeaderboard, onSkins, onSoundToggle, onWithdraw, gameTokensEarned = 0, totalTokensEarned = 0) {
     this.hideAll();
     
     // Пересоздаем экран геймовера с актуальными данными
@@ -71,6 +78,7 @@ export class UI {
     const restartBtn = this.gameOverScreen.querySelector('.restart-btn');
     const leaderboardBtn = this.gameOverScreen.querySelector('.leaderboard-btn');
     const skinsBtn = this.gameOverScreen.querySelector('.skins-btn');
+    const withdrawBtn = this.gameOverScreen.querySelector('.withdraw-btn');
     const soundBtn = this.gameOverScreen.querySelector('.sound-toggle-btn');
     
     // Удаляем старые обработчики и привязываем новые
@@ -85,6 +93,10 @@ export class UI {
     if (this._bindedSkins) skinsBtn.removeEventListener('click', this._bindedSkins);
     this._bindedSkins = () => onSkins && onSkins();
     skinsBtn.addEventListener('click', this._bindedSkins);
+    
+    if (this._bindedWithdraw) withdrawBtn.removeEventListener('click', this._bindedWithdraw);
+    this._bindedWithdraw = () => onWithdraw && onWithdraw();
+    withdrawBtn.addEventListener('click', this._bindedWithdraw);
     
     if (this._bindedSoundToggle) soundBtn.removeEventListener('click', this._bindedSoundToggle);
     this._bindedSoundToggle = () => onSoundToggle && onSoundToggle();
@@ -127,6 +139,69 @@ export class UI {
       };
       button.addEventListener('click', this._bindedSkinSelect);
     });
+  }
+
+  showWithdrawScreen(onBack, onConfirm, totalTokens = 0) {
+    this.hideAll();
+    const withdrawScreen = this._getOrCreateWithdrawScreen();
+    withdrawScreen.classList.remove('hidden');
+    
+    // Обновляем информацию о токенах
+    const tokensInfo = withdrawScreen.querySelector('#withdraw-tokens-info');
+    if (tokensInfo) {
+      if (totalTokens > 0) {
+        tokensInfo.innerHTML = `
+          <div class="token-info">
+            <div class="token-label">Доступно для вывода:</div>
+            <div class="token-display">${totalTokens} 🪙</div>
+          </div>
+        `;
+      } else {
+        tokensInfo.innerHTML = `
+          <div class="token-info">
+            <div class="token-label">Доступно для вывода:</div>
+            <div class="token-display">0 🪙</div>
+          </div>
+          <p>У вас пока нет токенов для вывода. Играйте и зарабатывайте!</p>
+        `;
+      }
+    }
+    
+    // Обновляем поле количества токенов
+    const tokensAmountInput = withdrawScreen.querySelector('#tokens-amount');
+    if (tokensAmountInput) {
+      tokensAmountInput.value = totalTokens > 0 ? Math.min(1, totalTokens) : 1;
+      tokensAmountInput.max = totalTokens;
+    }
+    
+    const backBtn = withdrawScreen.querySelector('.back-btn');
+    const confirmBtn = withdrawScreen.querySelector('.confirm-withdraw-btn');
+    
+    if (this._bindedBack) backBtn.removeEventListener('click', this._bindedBack);
+    this._bindedBack = () => onBack && onBack();
+    backBtn.addEventListener('click', this._bindedBack);
+    
+    if (this._bindedConfirm) confirmBtn.removeEventListener('click', this._bindedConfirm);
+    this._bindedConfirm = () => {
+      const walletAddress = withdrawScreen.querySelector('#wallet-address').value.trim();
+      const tokensAmount = parseInt(withdrawScreen.querySelector('#tokens-amount').value);
+      
+      if (!walletAddress) {
+        alert('Пожалуйста, введите адрес кошелька');
+        return;
+      }
+      
+      if (onConfirm) {
+        onConfirm(walletAddress, tokensAmount);
+      }
+    };
+    confirmBtn.addEventListener('click', this._bindedConfirm);
+    
+    // Очищаем поле ввода адреса при показе экрана
+    const walletInput = withdrawScreen.querySelector('#wallet-address');
+    if (walletInput) {
+      walletInput.value = '';
+    }
   }
 
   updateLeaderboardList(scores, isOnline = false) {
@@ -211,6 +286,8 @@ export class UI {
     if (leaderboardScreen) leaderboardScreen.classList.add('hidden');
     const skinsScreen = document.getElementById('skins-screen');
     if (skinsScreen) skinsScreen.classList.add('hidden');
+    const withdrawScreen = document.getElementById('withdraw-screen');
+    if (withdrawScreen) withdrawScreen.classList.add('hidden');
   }
 
   _getOrCreateStartScreen(telegramUser = null) {
@@ -242,6 +319,7 @@ export class UI {
       <button class="start-btn">Начать игру</button>
       <button class="leaderboard-btn">Таблица рекордов</button>
       <button class="skins-btn">Выбор облика</button>
+      <button class="withdraw-btn">Вывести токены (ТЕСТ)</button>
       <button class="sound-toggle-btn sound-on">🔊</button>
     `;
     
@@ -276,6 +354,7 @@ export class UI {
       <button class="restart-btn">Сыграть ещё</button>
       <button class="leaderboard-btn">Таблица рекордов</button>
       <button class="skins-btn">Выбор облика</button>
+      <button class="withdraw-btn">Вывести токены (ТЕСТ)</button>
       <button class="sound-toggle-btn sound-on">🔊</button>
     `;
     document.getElementById('game-container').appendChild(el);
@@ -316,6 +395,37 @@ export class UI {
           </div>
           <div class="skin-item" data-skin="bird-green">
             <img src="src/assets/bird-green.svg" alt="Зелёная птичка" width="70" height="50">
+          </div>
+        </div>
+        <button class="back-btn">Назад</button>
+      `;
+      document.getElementById('game-container').appendChild(el);
+    }
+    return el;
+  }
+
+  _getOrCreateWithdrawScreen() {
+    let el = document.getElementById('withdraw-screen');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'withdraw-screen';
+      el.className = 'ui-screen hidden';
+      el.innerHTML = `
+        <h2>Вывод токенов</h2>
+        <div class="withdraw-content">
+          <div id="withdraw-tokens-info">
+            <p>Здесь будет форма для вывода токенов</p>
+          </div>
+          <div class="withdraw-form">
+            <div class="form-group">
+              <label for="wallet-address">Адрес кошелька:</label>
+              <input type="text" id="wallet-address" placeholder="Введите адрес Solana кошелька" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="tokens-amount">Количество токенов:</label>
+              <input type="number" id="tokens-amount" value="1" min="1" class="form-input" disabled>
+            </div>
+            <button class="confirm-withdraw-btn">Подтвердить вывод</button>
           </div>
         </div>
         <button class="back-btn">Назад</button>

@@ -195,6 +195,31 @@ export class UserProfileManager {
   }
 
   /**
+   * Обновляет профиль пользователя
+   * @param {string} userId - ID пользователя
+   * @param {Object} updatedProfile - обновленный профиль
+   * @returns {Promise<boolean>} успешность обновления
+   */
+  async updateProfile(userId, updatedProfile) {
+    if (!this.isOnline || !userId) {
+      return false;
+    }
+
+    try {
+      const userRef = window.firebaseRef(window.firebaseDB, `users/${userId}`);
+      await window.firebaseSet(userRef, updatedProfile);
+      
+      // Обновляем кэш
+      this.cacheProfile(userId, updatedProfile);
+
+      return true;
+    } catch (error) {
+      console.error('❌ Ошибка обновления профиля:', error);
+      return false;
+    }
+  }
+
+  /**
    * Обновляет время последней активности пользователя
    * @param {string} userId - ID пользователя
    * @returns {Promise<boolean>} успешность обновления

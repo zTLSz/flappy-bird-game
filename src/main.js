@@ -39,7 +39,6 @@ const telegramUser = new TelegramUser();
 // Инициализируем систему профилей
 const profileIntegration = new ProfileIntegration();
 
-
 // Инициализируем лидерборд и профиль асинхронно
 async function initializeGameData() {
   try {
@@ -184,6 +183,117 @@ assets.loadAll().then(() => {
     }
   }
 
+  // Функция для обработки вывода токенов
+  async function handleWithdrawTokens() {
+    try {
+      // Получаем информацию о токенах
+      const currentProfile = profileIntegration.getCurrentProfile();
+      const totalTokens = currentProfile ? currentProfile.coins.totalEarned : 0;
+      
+      // Показываем экран вывода токенов (доступен всегда)
+      ui.showWithdrawScreen(
+        () => {
+          // Обработчик кнопки "Назад"
+          updateUIByState();
+        },
+        async (walletAddress, tokensAmount) => {
+          // Обработчик кнопки "Подтвердить вывод"
+          await processWithdrawTokens(walletAddress, tokensAmount);
+        },
+        totalTokens
+      );
+      
+    } catch (error) {
+      console.error('❌ Ошибка при выводе токенов:', error);
+      alert('Произошла ошибка при выводе токенов. Попробуйте позже.');
+    }
+  }
+
+  // Функция для обработки подтверждения вывода токенов
+  async function processWithdrawTokens(walletAddress, tokensAmount) {
+    try {
+      console.log('💰 Запрос на вывод токенов:', {
+        walletAddress,
+        tokensAmount
+      });
+      
+      // Отправляем POST запрос на сервер
+      const response = await fetch(`https://flappy-send-token-production.up.railway.app/send_tokens?wallet=${encodeURIComponent(walletAddress)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: tokensAmount
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('❌ Ошибка сервера:', response.status, errorData);
+        alert(`Ошибка сервера: ${response.status}\n${errorData}`);
+        return;
+      }
+      
+      const result = await response.json();
+      console.log('✅ Токены успешно отправлены:', result);
+      
+      // Уменьшаем количество токенов в Firebase на 1
+      await decreaseUserTokens(1);
+      
+      alert('✅ Токены успешно отправлены на ваш кошелек!');
+      
+      // Возвращаемся на предыдущий экран
+      updateUIByState();
+      
+    } catch (error) {
+      console.error('❌ Ошибка при обработке вывода токенов:', error);
+      alert('Произошла ошибка при выводе токенов. Попробуйте позже.');
+    }
+  }
+
+  // Функция для уменьшения токенов пользователя в Firebase
+  async function decreaseUserTokens(amount) {
+    try {
+      const currentProfile = profileIntegration.getCurrentProfile();
+      if (!currentProfile) {
+        console.error('❌ Профиль пользователя не найден');
+        return;
+      }
+      
+      const userId = telegramUser.getUserId();
+      if (!userId) {
+        console.error('❌ ID пользователя не найден');
+        return;
+      }
+      
+      const newTotalEarned = Math.max(0, currentProfile.coins.totalEarned - amount);
+      
+      // Обновляем профиль в Firebase
+      const updatedProfile = {
+        ...currentProfile,
+        coins: {
+          ...currentProfile.coins,
+          totalEarned: newTotalEarned
+        }
+      };
+      
+      const success = await profileIntegration.profileManager.updateProfile(userId, updatedProfile);
+      
+      if (success) {
+        // Обновляем локальный профиль
+        profileIntegration.currentProfile = updatedProfile;
+        console.log('✅ Токены обновлены в Firebase:', newTotalEarned);
+      } else {
+        throw new Error('Не удалось обновить профиль в Firebase');
+      }
+      
+    } catch (error) {
+      console.error('❌ Ошибка при обновлении токенов в Firebase:', error);
+      throw error;
+    }
+  }
+
   // Следим за сменой состояния (в реальном gameState будет событие)
   const origSetState = gameState.setState.bind(gameState);
   gameState.setState = function(state) {
@@ -227,6 +337,10 @@ assets.loadAll().then(() => {
         // Переключаем звук
         const isSoundOn = assets.toggleSound();
         ui.updateSoundButton(isSoundOn);
+      },
+      () => {
+        // Вывод токенов
+        handleWithdrawTokens();
       },
       telegramUser,
       totalEarned
@@ -288,6 +402,10 @@ assets.loadAll().then(() => {
         // Переключаем звук
         const isSoundOn = assets.toggleSound();
         ui.updateSoundButton(isSoundOn);
+      },
+      () => {
+        // Вывод токенов
+        handleWithdrawTokens();
       },
       gameTokensEarned,
       totalTokensEarned

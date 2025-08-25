@@ -83,6 +83,96 @@ body {
   background: linear-gradient(45deg, #ff9800, #ff5722);
 }
 
+.ui-screen .withdraw-btn {
+  margin-top: 1rem;
+  background: linear-gradient(45deg, #4caf50, #2e7d32);
+  position: relative;
+}
+
+.ui-screen .withdraw-btn:hover {
+  background: linear-gradient(45deg, #2e7d32, #4caf50);
+}
+
+
+/* Стили для экрана вывода токенов */
+.withdraw-content {
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+}
+
+.withdraw-content p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+/* Стили для формы вывода токенов */
+.withdraw-form {
+  margin: 20px 0;
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: bold;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  outline: none;
+  transition: border-color 0.3s, background 0.3s;
+  box-sizing: border-box;
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.form-input:focus {
+  border-color: #4caf50;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ui-screen .confirm-withdraw-btn {
+  margin-top: 20px;
+  background: linear-gradient(45deg, #4caf50, #2e7d32);
+  position: relative;
+}
+
+.ui-screen .confirm-withdraw-btn:hover {
+  background: linear-gradient(45deg, #2e7d32, #4caf50);
+}
+
+.ui-screen .confirm-withdraw-btn::before {
+  content: "✅";
+  margin-right: 8px;
+}
+
+
 /* Стили для отображения токенов */
 .token-info {
   margin: 20px 0;
